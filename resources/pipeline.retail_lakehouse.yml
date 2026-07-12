@@ -7,7 +7,9 @@ resources:
       name: retail_lakehouse
       serverless: true
       catalog: ${var.catalog}
-      # TODO: schema/root strategy per layer (bronze/silver/gold/ops)
+      # Required default schema for UC pipelines. Every declared object fully
+      # qualifies its own layer schema (via configuration params); this is the fallback.
+      schema: ${resources.schemas.bronze.name}
       libraries:
         - glob:
             include: ../transforms/**
@@ -23,4 +25,11 @@ resources:
         environment_tag: ${var.environment_tag}   # consumed by the R1 catalog guard
         lateness_window_days: ${var.lateness_window_days}
         git_sha: ${var.git_sha}
+        # Actual schema names via resource refs — development mode prefixes schema
+        # names (dev_<user>_bronze), so code must NEVER hardcode a schema literal.
+        landing_schema: ${resources.schemas.landing.name}
+        bronze_schema: ${resources.schemas.bronze.name}
+        silver_schema: ${resources.schemas.silver.name}
+        gold_schema: ${resources.schemas.gold.name}
+        ops_schema: ${resources.schemas.ops.name}
       # TODO: tags, channel, notifications
