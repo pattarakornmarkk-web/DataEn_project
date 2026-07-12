@@ -11,7 +11,9 @@ Scope is frozen to the documented scenario set (review item R7).
 from pyspark.sql import DataFrame
 
 
-def apply_scd2(target: DataFrame, changes: DataFrame, keys: list[str], sequence_col: str) -> DataFrame:
+def apply_scd2(
+    target: DataFrame, changes: DataFrame, keys: list[str], sequence_col: str
+) -> DataFrame:
     """Return the new full history state after applying a change batch."""
     raise NotImplementedError
 

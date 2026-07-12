@@ -25,7 +25,7 @@ def load_scenario(spark):
     def _load(name: str):
         from retail_lakehouse.scenarios import generator, parser
 
-        rows_by_source = generator.generate_batches(parser.load_scenario(name))
+        generator.generate_batches(parser.load_scenario(name))  # rows -> DataFrames below
         raise NotImplementedError  # TODO: rows -> DataFrames via spark.createDataFrame
 
     return _load
