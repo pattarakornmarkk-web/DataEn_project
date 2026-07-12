@@ -1,0 +1,64 @@
+# Bundle root — identity, variables, targets ONLY. All resources live in resources/*.yml.
+bundle:
+  name: retail_lakehouse
+
+include:
+  - resources/*.yml
+
+artifacts:
+  # Built at bundle level (both targets) — parity by construction.
+  retail_lakehouse_wheel:
+    type: whl
+    build: python3 -m build --wheel
+    path: .
+
+variables:
+  catalog:
+    description: Environment catalog — THE environment switch.
+  environment_tag:
+    description: Stamped on resources and into ops.run_audit rows.
+  notification_email:
+    description: Failure/alert recipient.
+    default: pattarakornmarkk@gmail.com
+  orchestrator_schedule:
+    description: Cron for the orchestrator job (paused in dev by mode).
+    default: "0 0 6 * * ?"
+  emulator_enabled:
+    description: Gates the source-emulator task.
+    default: "false"
+  lateness_window_days:
+    description: Dedup watermark horizon (pipeline parameter).
+    default: "7"
+  quarantine_alert_pct:
+    description: Quarantine-rate alert threshold.
+    default: "5"
+  git_sha:
+    description: Injected by CI at deploy time (audit lineage).
+    default: local
+  deployed_by:
+    description: Injected by CI at deploy time.
+    default: local
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-16b0e7f2-4893.cloud.databricks.com  # TODO confirm
+    variables:
+      catalog: retail_dev
+      environment_tag: dev
+      emulator_enabled: "true"
+      quarantine_alert_pct: "20"
+
+  prod:
+    mode: production
+    workspace:
+      host: https://dbc-16b0e7f2-4893.cloud.databricks.com  # TODO confirm
+      root_path: /Workspace/Users/pattarakornmarkk@gmail.com/.bundle/${bundle.name}/prod
+    run_as:
+      user_name: pattarakornmarkk@gmail.com  # ADR: dedicated SP on paid tier
+    variables:
+      catalog: retail_prod
+      environment_tag: prod
+      emulator_enabled: "false"

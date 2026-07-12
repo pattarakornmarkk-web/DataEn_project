@@ -1,0 +1,8 @@
+# SQL alerts on ops tables. Thresholds come from variables (loose in dev, tight in prod).
+resources: {}
+# TODO: alert resources:
+#   quarantine_rate_breach   — quarantine pct > ${var.quarantine_alert_pct} per source/batch
+#   expected_data_missing    — zero rows ingested on an expected schedule
+#   run_failed               — ops.run_audit status != SUCCESS
+#   freshness_sla_breach     — now - max(_ingest_ts) beyond SLA
+#   audit_absence_canary     — no run_audit row for latest pipeline run (R4 canary)

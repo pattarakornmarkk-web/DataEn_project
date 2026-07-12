@@ -1,0 +1,12 @@
+# Scenario: clean cold-start day. Template for all scenario files.
+scenario: day1_clean
+logical_clock: "2026-06-06T08:00:00Z"   # fixed — never wall-clock (R6)
+description: All six sources deliver clean batches; quarantine must stay empty.
+proves: [cold_start, conservation]
+batches:
+  customers: {rows: 5000, faults: []}          # TODO: generation spec / seed ref
+  products: {rows: 300, faults: []}
+  stores: {rows: 25, faults: []}
+  customer_updates: {rows: 50, faults: []}
+  order_events: {rows: 1000, faults: []}
+  customer_activity: {rows: 20000, faults: []}

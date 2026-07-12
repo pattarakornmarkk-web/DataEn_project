@@ -1,0 +1,52 @@
+# On merge to main: validate -> prod environment approval gate -> deploy -> smoke -> release tag.
+# workflow_dispatch with `ref` input is the rollback path (redeploy a previous tag).
+name: deploy-prod
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Tag or SHA to (re)deploy — rollback path
+        required: false
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  deploy:
+    needs: ci
+    runs-on: ubuntu-latest
+    environment: prod   # required-reviewer gate lives on this GitHub Environment
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+
+      - uses: databricks/setup-cli@main
+
+      - name: Deploy bundle (prod)
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          databricks bundle deploy --target prod \
+            --var="git_sha=${{ inputs.ref || github.sha }}" \
+            --var="deployed_by=${{ github.actor }}"
+
+      - name: Post-deploy smoke
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: databricks bundle run orchestrator --target prod
+        # TODO: assert run success + dq_reconciliation green + freshness updated
+
+      - name: Tag release
+        if: ${{ !inputs.ref }}
+        run: echo "TODO — create vYYYY.MM.DD-N tag via gh api"

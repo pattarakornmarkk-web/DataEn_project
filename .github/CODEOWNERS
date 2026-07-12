@@ -1,0 +1,5 @@
+# Files where mistakes reach prod get explicit review ownership.
+/resources/  @markuro
+/conf/       @markuro
+/databricks.yml @markuro
+/.github/    @markuro

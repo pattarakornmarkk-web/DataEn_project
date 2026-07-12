@@ -1,0 +1,65 @@
+# Contracts registry — successor to the legacy config_table, reviewable in PRs.
+#
+# Two distinct concerns (kept separate — the customer entity has TWO sources):
+#   source_contracts: shape of each landed FILE (columns, event identity, op semantics)
+#   entity_contracts: shape of each SILVER ENTITY (keys, sequencing, SCD type, tiebreak)
+#
+# Conventions (loader-enforced):
+#   - sequence_by is ALWAYS a list
+#   - every scd_type: 2 entity MUST declare tiebreak (ADR-0009)
+#   - unknown fields are load-time errors, never ignored
+
+source_contracts:
+  customers:
+    identity: [customer_id]
+    columns: {}   # TODO: full column -> type map (see source dataset design)
+  products:
+    identity: [product_id, effective_date]
+    columns: {}   # TODO
+  stores:
+    identity: [store_id, update_date]
+    columns: {}   # TODO
+  customer_updates:
+    identity: [customer_id, change_ts, change_seq]   # event identity, not entity identity
+    op_column: op                                    # I/U/D — op-aware DQ rules
+    delete_payload: key_only                         # op=D rows carry nulls outside keys
+    columns: {}   # TODO
+  order_events:
+    identity: [event_id]
+    columns: {}   # TODO
+  customer_activity:
+    identity: [activity_id]
+    columns: {}   # TODO (customer_id nullable BY DESIGN — anonymous browsing)
+
+entity_contracts:
+  dim_customer:
+    sources: [customers, customer_updates]   # unified via _v_customer_cdc_unified (ADR-0004)
+    keys: [customer_id]
+    scd_type: 2
+    sequence_by: [change_ts]
+    tiebreak: change_seq
+    apply_as_deletes: true
+  dim_product:
+    sources: [products]
+    keys: [product_id]
+    scd_type: 2
+    sequence_by: [effective_date]
+    tiebreak: _ingestion_order   # no natural tiebreaker: _source_file + row position (ADR-0009)
+  dim_store:
+    sources: [stores]
+    keys: [store_id]
+    scd_type: 2
+    sequence_by: [update_date]
+    tiebreak: _ingestion_order
+    # closure (closed_date set) is an attribute change, NOT a delete (blueprint §5)
+  fct_order_events:
+    sources: [order_events]
+    keys: [event_id]
+    dedup_key: [order_id, event_type]
+    sequence_by: [event_ts]
+    tiebreak: _ingestion_order
+  fct_customer_activity:
+    sources: [customer_activity]
+    keys: [activity_id]
+    sequence_by: [activity_ts]
+    tiebreak: _ingestion_order

@@ -1,0 +1,66 @@
+[project]
+name = "retail-lakehouse"
+version = "0.1.0"
+description = "Retail Lakehouse platform library (Databricks SDP + DAB)"
+license = {file = "LICENSE"}
+requires-python = ">=3.11"
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Pin pyspark to the closest DBR-serverless-equivalent version (ADR: runtime drift, R3)
+    "pyspark==4.0.0",  # TODO: confirm pin against current serverless runtime
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "chispa>=0.10",
+    "ruff>=0.6",
+]
+
+[project.scripts]
+# Console scripts = python_wheel_task entry points (resources/job.*.yml reference these names).
+post-run-audit = "retail_lakehouse.entrypoints.post_run_audit:main"
+source-emulator = "retail_lakehouse.entrypoints.source_emulator:main"
+integration-assertions = "retail_lakehouse.entrypoints.run_integration_assertions:main"
+run-invariants = "retail_lakehouse.entrypoints.run_invariants:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/retail_lakehouse"]
+
+[tool.hatch.build.targets.wheel.force-include]
+# ADR-0008: runtime packaging — conf/ and mock_data/ ship INSIDE the wheel as package
+# data (retail_lakehouse/_data/...). Repo layout stays reviewer-friendly; runtime access
+# is identical in CI, wheel tasks, and SDP serverless via retail_lakehouse.config.loader.
+"conf" = "retail_lakehouse/_data/conf"
+"mock_data/scenarios" = "retail_lakehouse/_data/scenarios"
+"mock_data/seeds" = "retail_lakehouse/_data/seeds"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "unit: fast local-Spark tests (CI)",
+    "integration: deployed-pipeline scenario assertions (runs in retail_dev)",
+    "dq: DQ registry meta-tests and standing invariants",
+]
+
+[tool.coverage.run]
+source = ["src/retail_lakehouse"]
+
+[tool.coverage.report]
+# Phased coverage gate (docs/testing.md#coverage-plan) — single source of truth for the
+# threshold; CI reads this value. Raise it in the same PR that implements each module:
+#   Phase 0 skeleton: 0 | Phase 1 dq+config+ingest: 60 | Phase 2 transform+audit: 80
+#   Phase 3 all modules implemented: 90 (final, per blueprint)
+fail_under = 0
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "B"]

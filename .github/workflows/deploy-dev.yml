@@ -1,0 +1,46 @@
+# On merge to develop: full CI -> deploy dev target -> run pipeline -> integration scenario suite.
+# This run IS the staging bake; red here blocks promotion to main (branch protection).
+name: deploy-dev
+
+on:
+  push:
+    branches: [develop]
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  deploy:
+    needs: ci
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: databricks/setup-cli@main
+
+      - name: Deploy bundle (dev)
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          databricks bundle deploy --target dev \
+            --var="git_sha=${{ github.sha }}" \
+            --var="deployed_by=${{ github.actor }}"
+
+      - name: Run orchestrator once
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: databricks bundle run orchestrator --target dev
+
+      - name: Run integration scenario suite
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: databricks bundle run integration_tests --target dev
+        # TODO: publish scenario results to $GITHUB_STEP_SUMMARY

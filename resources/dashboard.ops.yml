@@ -1,0 +1,5 @@
+# Ops dashboard: run status timeline, rows/day per layer, quarantine rate per source,
+# DQ pass-rate trend, SCD2 churn, freshness (now - max _ingest_ts).
+resources: {}
+# TODO: dashboards resource definition (AI/BI dashboard serialized) once queries exist.
+# Queries read ops.run_audit, ops.dq_results, gold.dq_reconciliation.

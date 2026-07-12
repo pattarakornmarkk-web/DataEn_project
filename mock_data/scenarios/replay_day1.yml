@@ -1,0 +1,6 @@
+# Scenario: exactly-once proof — re-deliver day1's files unchanged.
+scenario: replay_day1
+logical_clock: "2026-06-06T20:00:00Z"
+description: Byte-identical re-delivery of day1_clean batches; zero new rows anywhere.
+proves: [exactly_once, checkpoint_idempotency]
+replay_of: day1_clean   # generator re-emits day1 batches verbatim; no own batch specs

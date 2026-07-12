@@ -1,0 +1,24 @@
+# Integration scenario suite — runs retail_lakehouse.integration.assertions in-workspace
+# via the integration-assertions entry point. tests/integration/ holds the thin pytest
+# wrappers over the SAME definitions. Deployed to prod for parity; only triggered in dev.
+resources:
+  jobs:
+    integration_tests:
+      name: retail_lakehouse_integration_tests
+      tags:
+        environment: ${var.environment_tag}
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "4"
+            dependencies:
+              - ../dist/*.whl
+      tasks:
+        - task_key: run_scenarios
+          environment_key: default
+          python_wheel_task:
+            package_name: retail_lakehouse
+            entry_point: integration-assertions
+            named_parameters:
+              catalog: ${var.catalog}
+              environment_tag: ${var.environment_tag}

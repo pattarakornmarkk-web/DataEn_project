@@ -1,0 +1,14 @@
+# DQ rule registry — consumed by the rule engine, expectation generation, AND the
+# registry meta-tests (tests/data_quality/test_registry.py enforces minimum coverage:
+# every table must have at least key-null + duplicate rules).
+#
+# severity tiers: gate (expect_or_fail) | quarantine (split-flow) | observe (warn)
+rules:
+  fct_order_events:
+    - {column: event_id, rule: null_key, severity: quarantine}
+    - {column: event_id, rule: duplicate, severity: quarantine}
+    - {column: event_type, rule: domain, values: [PLACED, PAID, SHIPPED, CANCELLED], severity: quarantine}
+    - {column: event_ts, rule: plausibility, max_future_skew_minutes: 5, severity: quarantine}
+    - {rule: rescue_rate, threshold_pct: 10, severity: gate}
+  # TODO: customers, products, stores, customer_updates (op-aware), customer_activity
+  #       (observe-tier only — policy meta-test enforces no gate rules here)

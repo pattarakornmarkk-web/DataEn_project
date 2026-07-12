@@ -1,0 +1,11 @@
+# Scenario: CDC deletes — apply_as_deletes behavior + orphan-delete policy (ADR-0006).
+scenario: day4_deletes
+logical_clock: "2026-06-09T08:00:00Z"
+description: op=D closes customers out of gold; one delete precedes its own insert.
+proves: [cdc_deletes, orphan_delete_policy, gold_delete_exclusion]
+batches:
+  customer_updates:
+    rows: 40
+    faults: [delete_events, orphan_delete]   # deletes are key-only rows (op-aware DQ)
+  order_events: {rows: 900, faults: []}
+# TODO: per-fault row specs (which customer_ids)

@@ -1,0 +1,17 @@
+# Scenario: schema drift — south POS adds discount_pct; activity switches to epoch-millis.
+scenario: day5_schema_drift
+logical_clock: "2026-06-10T08:00:00Z"
+description: Rescue column populated, warn expectation fires, pipeline survives; a
+  separate drift-heavy variant must trip the gate threshold and fail the update.
+proves: [schema_drift_rescue, drift_gate, timestamp_format_drift]
+batches:
+  order_events:
+    rows: 1100
+    faults: [extra_column_south]   # discount_pct -> _rescued_data
+  customer_activity:
+    rows: 25000
+    faults: [epoch_millis_timestamps]
+variants:
+  drift_gate_trip:
+    order_events: {rows: 500, faults: [extra_column_south_all_rows]}  # above gate threshold
+# TODO: per-fault row specs

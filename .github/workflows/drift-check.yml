@@ -1,0 +1,22 @@
+# Weekly drift detection: prod is never edited by hand; this catches it if it was.
+name: drift-check
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"  # Mondays 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  validate-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: databricks/setup-cli@main
+      - name: Validate + summary diff
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          databricks bundle validate --target prod
+          databricks bundle summary --target prod
+        # TODO: diff summary against last release tag; open issue on drift

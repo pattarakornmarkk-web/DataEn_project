@@ -1,0 +1,12 @@
+# Scenario: missing data — north POS delivers nothing on an expected schedule.
+scenario: day6_silence
+logical_clock: "2026-06-11T08:00:00Z"
+description: Pipeline runs green on partial data; expected-data-missing alert must fire.
+proves: [volume_anomaly_alerting, freshness_sla]
+batches:
+  # order_events north deliberately ABSENT
+  order_events_south_only: {rows: 600, faults: []}
+  customer_activity: {rows: 21000, faults: []}
+expected_absent:
+  - order_events.north
+# TODO: alert assertion spec (which alert, which threshold)

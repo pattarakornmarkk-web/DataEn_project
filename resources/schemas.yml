@@ -1,0 +1,27 @@
+# UC schemas + landing volumes — a fresh catalog bootstraps from zero with one deploy.
+# Grants are documented here (shape only) and applied on paid tier — see ADR-0001.
+resources:
+  schemas:
+    landing:
+      catalog_name: ${var.catalog}
+      name: landing
+    bronze:
+      catalog_name: ${var.catalog}
+      name: bronze
+    silver:
+      catalog_name: ${var.catalog}
+      name: silver
+    gold:
+      catalog_name: ${var.catalog}
+      name: gold
+    ops:
+      catalog_name: ${var.catalog}
+      name: ops
+  volumes:
+    landing_files:
+      catalog_name: ${var.catalog}
+      schema_name: landing
+      name: files
+      # TODO: per-source subfolders created by emulator/bootstrap:
+      # customers/ products/ stores/ customer_updates/{crm,mobile_app}/
+      # order_events/{north,south}/ customer_activity/ (+ _archive/ each)

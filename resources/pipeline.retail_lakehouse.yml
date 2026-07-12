@@ -1,0 +1,26 @@
+# The SDP pipeline — the 28-object DAG (transforms/ + pipelines/ glue).
+# transforms/ import retail_lakehouse.* ONLY (never pipelines/ glue — no cross-glob
+# imports); the wheel below is what makes those imports resolve on serverless.
+resources:
+  pipelines:
+    retail_lakehouse:
+      name: retail_lakehouse
+      serverless: true
+      catalog: ${var.catalog}
+      # TODO: schema/root strategy per layer (bronze/silver/gold/ops)
+      libraries:
+        - glob:
+            include: ../transforms/**
+        - glob:
+            include: ../pipelines/**
+      environment:
+        dependencies:
+          # Wheel consumption (critical fix): DAB uploads the built artifact and
+          # rewrites this path at deploy time.
+          - ../dist/*.whl
+      configuration:
+        catalog: ${var.catalog}
+        environment_tag: ${var.environment_tag}   # consumed by the R1 catalog guard
+        lateness_window_days: ${var.lateness_window_days}
+        git_sha: ${var.git_sha}
+      # TODO: tags, channel, notifications

@@ -1,0 +1,27 @@
+# Source emulator: renders mock_data/scenarios/<scenario>.yml (packaged in the wheel,
+# ADR-0008) into landing-volume files. Triggered by the orchestrator in dev; never in prod.
+resources:
+  jobs:
+    source_emulator:
+      name: retail_lakehouse_source_emulator
+      tags:
+        environment: ${var.environment_tag}
+      parameters:
+        - name: scenario
+          default: day1_clean
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "4"
+            dependencies:
+              - ../dist/*.whl
+      tasks:
+        - task_key: write_scenario
+          environment_key: default
+          python_wheel_task:
+            package_name: retail_lakehouse
+            entry_point: source-emulator
+            named_parameters:
+              scenario: "{{job.parameters.scenario}}"
+              catalog: ${var.catalog}
+              environment_tag: ${var.environment_tag}   # R1 guard runs before any write

@@ -1,0 +1,66 @@
+# Wrapper Lakeflow Job:
+#   check_emulator_enabled -> (source_emulator, dev only) -> pipeline_update
+#   -> post_run_audit -> invariant_checks
+resources:
+  jobs:
+    orchestrator:
+      name: retail_lakehouse_orchestrator
+      tags:
+        environment: ${var.environment_tag}
+      schedule:
+        quartz_cron_expression: ${var.orchestrator_schedule}
+        timezone_id: Asia/Bangkok
+        # paused automatically in dev by development mode
+      email_notifications:
+        on_failure:
+          - ${var.notification_email}
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "4"
+            dependencies:
+              - ../dist/*.whl   # wheel for the python_wheel_task steps below
+      tasks:
+        - task_key: check_emulator_enabled
+          condition_task:
+            op: EQUAL_TO
+            left: ${var.emulator_enabled}
+            right: "true"
+
+        - task_key: source_emulator
+          depends_on:
+            - task_key: check_emulator_enabled
+              outcome: "true"
+          run_job_task:
+            job_id: ${resources.jobs.source_emulator.id}
+
+        - task_key: pipeline_update
+          depends_on:
+            - task_key: source_emulator
+          run_if: ALL_DONE   # runs even when the emulator branch is skipped (prod)
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.retail_lakehouse.id}
+
+        - task_key: post_run_audit
+          depends_on:
+            - task_key: pipeline_update
+          environment_key: default
+          python_wheel_task:
+            package_name: retail_lakehouse
+            entry_point: post-run-audit
+            named_parameters:
+              catalog: ${var.catalog}
+              environment_tag: ${var.environment_tag}
+              git_sha: ${var.git_sha}
+              deployed_by: ${var.deployed_by}
+
+        - task_key: invariant_checks
+          depends_on:
+            - task_key: post_run_audit
+          environment_key: default
+          python_wheel_task:
+            package_name: retail_lakehouse
+            entry_point: run-invariants
+            named_parameters:
+              catalog: ${var.catalog}
+              environment_tag: ${var.environment_tag}

@@ -1,0 +1,16 @@
+# Scenario: the DQ showcase — every quarantine-tier fault type in one day.
+scenario: poison_day
+logical_clock: "2026-06-09T08:00:00Z"
+description: Injected faults must land in quarantine with exact reason arrays; valid siblings flow through.
+proves: [quarantine_routing, conservation, reason_accuracy]
+batches:
+  customers:
+    rows: 200
+    faults: [null_key, row_duplicate, key_duplicate, invalid_birth_date, invalid_loyalty_tier, broken_store_ref]
+  order_events:
+    rows: 500
+    faults: [duplicate_event_id, negative_quantity, future_event_ts, null_customer_id]
+  customer_updates:
+    rows: 30
+    faults: [null_change_ts, invalid_op, orphan_update]
+# TODO: per-fault row specs

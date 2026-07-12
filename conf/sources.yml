@@ -1,0 +1,30 @@
+# Source registry — drives bronze declarations and the emulator.
+# One entry per source: landing path (relative to landing volume), format,
+# filename pattern, emitters (multi-flow sources list >1).
+sources:
+  customers:
+    path: customers/
+    format: csv
+    filename_pattern: "customers_*"
+  products:
+    path: products/
+    format: csv
+    filename_pattern: "products_*"
+  stores:
+    path: stores/
+    format: csv
+    filename_pattern: "stores_*"
+  customer_updates:
+    format: csv
+    emitters:
+      crm: customer_updates/crm/
+      mobile_app: customer_updates/mobile_app/
+  order_events:
+    format: json   # JSON Lines
+    emitters:
+      north: order_events/north/
+      south: order_events/south/
+  customer_activity:
+    path: customer_activity/
+    format: json
+# TODO: rescue/drift thresholds per source

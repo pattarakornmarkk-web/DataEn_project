@@ -1,0 +1,12 @@
+# Scenario: late-arriving CDC — day-1-timestamped changes arrive after day-2 changes applied.
+scenario: day2_late_cdc
+logical_clock: "2026-06-07T08:00:00Z"
+description: SCD2 must slot late events into history by sequence, not arrival order.
+proves: [late_arriving_cdc, scd2_resequencing]
+batches:
+  customer_updates:
+    rows: 80
+    faults: [late_arriving_events]   # subset carries change_ts from 2026-06-06
+  order_events: {rows: 1200, faults: []}
+  customer_activity: {rows: 22000, faults: []}
+# TODO: per-fault row specs (which keys, which timestamps)

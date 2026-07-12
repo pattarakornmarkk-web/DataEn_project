@@ -1,0 +1,17 @@
+# Scenario: out-of-order sequencing — U(t2) before U(t1) in one file; identical change_ts
+# pairs distinguished only by change_seq (ADR-0009); CANCELLED before PLACED lifecycle.
+scenario: day3_out_of_order
+logical_clock: "2026-06-08T08:00:00Z"
+description: Sequencing and tiebreak handling under disordered delivery.
+proves: [out_of_order_events, tiebreak_policy, lifecycle_disorder]
+batches:
+  customer_updates:
+    rows: 60
+    faults: [out_of_order_within_batch, equal_sequence_tiebreak]
+  order_events:
+    rows: 1000
+    faults: [cancelled_before_placed]
+  stores:
+    rows: 3
+    faults: [stale_redelivery]   # older update_date than already applied — must be ignored
+# TODO: per-fault row specs

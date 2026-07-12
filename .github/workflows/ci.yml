@@ -1,0 +1,47 @@
+# CI gate: lint -> unit + DQ-registry tests -> wheel build -> bundle validate (BOTH targets).
+# Reusable via workflow_call so deploy workflows never duplicate these steps.
+name: ci
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: ["feature/**"]
+  workflow_call:
+
+jobs:
+  lint-test-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]" build
+
+      - name: Lint (ruff)
+        run: ruff check . && ruff format --check .
+
+      - name: Unit + DQ registry tests (local PySpark)
+        # "and not integration" keeps in-workspace invariants (marked dq+integration)
+        # out of CI runners. Coverage gate value lives in pyproject.toml only —
+        # phased plan in docs/testing.md; raise it in the same PR that implements a module.
+        run: pytest -m "(unit or dq) and not integration" --cov
+
+      - name: Build wheel (packaging must break here, not at deploy)
+        run: python -m build --wheel
+
+      - name: Setup Databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Bundle validate — dev and prod
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          databricks bundle validate --target dev
+          databricks bundle validate --target prod
