@@ -42,6 +42,7 @@ packages = ["src/retail_lakehouse"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]
 markers = [
     "unit: fast local-Spark tests (CI)",
     "integration: deployed-pipeline scenario assertions (runs in retail_dev)",
@@ -56,7 +57,8 @@ source = ["src/retail_lakehouse"]
 # threshold; CI reads this value. Raise it in the same PR that implements each module:
 #   Phase 0 skeleton: 0 | Phase 1 dq+config+ingest: 60 | Phase 2 transform+audit: 80
 #   Phase 3 all modules implemented: 90 (final, per blueprint)
-fail_under = 0
+# Currently mid-phase-1 (config + scenarios done at 61%; dq/ingest pending).
+fail_under = 55
 
 [tool.ruff]
 line-length = 100

@@ -27,5 +27,8 @@ a filesystem path to registry or scenario data. Repo layout keeps `conf/` and
 - Config/scenario changes require a wheel rebuild + deploy — intentional: config rides
   the same CI gate (lint, registry meta-tests, validate) as code.
 - Data version is atomically tied to code version (git_sha covers both).
+- Editable/source-tree runs (pip install -e, local pytest) have no `_data`; the single
+  accessor falls back to the repo's `conf/` and `mock_data/` — same API either way,
+  and the packaged path is verified separately by the wheel-install check.
 - Revisit trigger: if registries need to change independently of releases (ops-managed
   thresholds), split those specific values into job/pipeline parameters — not files.
