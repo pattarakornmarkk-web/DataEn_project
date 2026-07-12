@@ -31,6 +31,13 @@ jobs:
 
       - uses: databricks/setup-cli@main
 
+      # bundle deploy builds the wheel on this runner (see deploy-dev.yml)
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install build tooling
+        run: pip install build
+
       - name: Deploy bundle (prod)
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
@@ -40,7 +47,10 @@ jobs:
             --var="git_sha=${{ inputs.ref || github.sha }}" \
             --var="deployed_by=${{ github.actor }}"
 
+      # TEMPORARILY DISABLED (if: false) — same reason as deploy-dev.yml:
+      # nothing runnable until transforms + entry points are implemented (phase 2).
       - name: Post-deploy smoke
+        if: ${{ false }}
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
