@@ -25,3 +25,4 @@ resources:
               scenario: "{{job.parameters.scenario}}"
               catalog: ${var.catalog}
               environment_tag: ${var.environment_tag}   # R1 guard runs before any write
+              landing_schema: ${resources.schemas.landing.name}

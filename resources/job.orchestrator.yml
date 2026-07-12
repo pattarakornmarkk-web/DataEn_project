@@ -53,6 +53,7 @@ resources:
               environment_tag: ${var.environment_tag}
               git_sha: ${var.git_sha}
               deployed_by: ${var.deployed_by}
+              ops_schema: ${resources.schemas.ops.name}
 
         - task_key: invariant_checks
           depends_on:
@@ -64,3 +65,7 @@ resources:
             named_parameters:
               catalog: ${var.catalog}
               environment_tag: ${var.environment_tag}
+              ops_schema: ${resources.schemas.ops.name}
+              bronze_schema: ${resources.schemas.bronze.name}
+              silver_schema: ${resources.schemas.silver.name}
+              gold_schema: ${resources.schemas.gold.name}
