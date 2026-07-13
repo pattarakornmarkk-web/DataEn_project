@@ -9,6 +9,7 @@ Validation philosophy: unknown fields, unknown rule types, and shape violations 
 load-time ConfigErrors — never silent no-ops (blueprint testing spec §1.7).
 """
 
+import re
 from importlib import resources
 from pathlib import Path
 
@@ -17,10 +18,40 @@ import yaml
 from retail_lakehouse.config.contracts import ConfigError
 
 KNOWN_RULE_TYPES = frozenset(
-    {"null_key", "duplicate", "domain", "format", "plausibility", "try_cast", "rescue_rate"}
+    {
+        "null_key",
+        "duplicate",
+        "domain",
+        "format",
+        "plausibility",
+        "range",
+        "try_cast",
+        "rescue_rate",
+    }
 )
 KNOWN_SEVERITIES = frozenset({"gate", "quarantine", "observe"})
 KNOWN_FORMATS = frozenset({"csv", "json"})
+KNOWN_SCALAR_TYPES = frozenset(
+    {"string", "int", "bigint", "double", "date", "timestamp", "boolean"}
+)
+_DECIMAL_TYPE_RE = re.compile(r"^decimal\(\d+,\d+\)$")
+
+# Rules that operate on the whole batch rather than a single column.
+_COLUMNLESS_RULES = frozenset({"duplicate", "rescue_rate"})
+# Required params per rule type (range additionally needs min and/or max).
+_RULE_REQUIRED_PARAMS = {
+    "domain": ("values",),
+    "format": ("pattern",),
+    "rescue_rate": ("threshold_pct",),
+}
+
+
+def is_known_column_type(ctype) -> bool:
+    """True for the declared contract type vocabulary (scalar or decimal(p,s))."""
+    return isinstance(ctype, str) and (
+        ctype in KNOWN_SCALAR_TYPES or bool(_DECIMAL_TYPE_RE.match(ctype))
+    )
+
 
 # Source-tree fallback layout: category -> repo-relative directory.
 _DEV_LAYOUT = {"conf": "conf", "scenarios": "mock_data/scenarios", "seeds": "mock_data/seeds"}
@@ -119,6 +150,20 @@ def parse_contracts(raw: dict) -> dict:
         _reject_unknown_fields(spec, _SOURCE_CONTRACT_FIELDS, where)
         if not isinstance(spec.get("identity"), list) or not spec["identity"]:
             raise ConfigError(f"{where}: identity must be a non-empty list")
+        columns = spec.get("columns")
+        if not isinstance(columns, dict) or not columns:
+            raise ConfigError(f"{where}: columns must be a non-empty mapping")
+        for col, ctype in columns.items():
+            if not is_known_column_type(ctype):
+                raise ConfigError(
+                    f"{where}: column {col!r} has unknown type {ctype!r}; "
+                    f"expected one of {sorted(KNOWN_SCALAR_TYPES)} or decimal(p,s)"
+                )
+        missing_identity = set(spec["identity"]) - set(columns)
+        if missing_identity:
+            raise ConfigError(
+                f"{where}: identity column(s) {sorted(missing_identity)} not in columns"
+            )
 
     entity_contracts = _require_mapping(raw["entity_contracts"], "entity_contracts")
     for name, spec in entity_contracts.items():
@@ -144,7 +189,17 @@ def parse_contracts(raw: dict) -> dict:
 
 
 _RULE_FIELDS = frozenset(
-    {"rule", "severity", "column", "values", "threshold_pct", "max_future_skew_minutes"}
+    {
+        "rule",
+        "severity",
+        "column",
+        "values",
+        "pattern",
+        "min",
+        "max",
+        "threshold_pct",
+        "max_future_skew_minutes",
+    }
 )
 
 
@@ -163,10 +218,25 @@ def parse_dq_rules(raw: dict) -> dict:
             where = f"rule {rule!r} on {table!r}"
             rule = _require_mapping(rule, where)
             _reject_unknown_fields(rule, _RULE_FIELDS, where)
-            if rule.get("rule") not in KNOWN_RULE_TYPES:
+            rule_type = rule.get("rule")
+            if rule_type not in KNOWN_RULE_TYPES:
                 raise ConfigError(f"{where}: rule type must be one of {sorted(KNOWN_RULE_TYPES)}")
             if rule.get("severity") not in KNOWN_SEVERITIES:
                 raise ConfigError(f"{where}: severity must be one of {sorted(KNOWN_SEVERITIES)}")
+            column = rule.get("column")
+            if rule_type in _COLUMNLESS_RULES:
+                if column is not None:
+                    raise ConfigError(f"{where}: {rule_type} takes no column")
+            elif column == "*":
+                if rule_type != "try_cast":
+                    raise ConfigError(f"{where}: column '*' is only valid for try_cast")
+            elif not isinstance(column, str) or not column:
+                raise ConfigError(f"{where}: column is required")
+            for param in _RULE_REQUIRED_PARAMS.get(rule_type, ()):
+                if param not in rule:
+                    raise ConfigError(f"{where}: {rule_type} requires {param!r}")
+            if rule_type == "range" and "min" not in rule and "max" not in rule:
+                raise ConfigError(f"{where}: range requires min and/or max")
     return rules
 
 

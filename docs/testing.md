@@ -5,12 +5,12 @@
 The gate lives in `pyproject.toml` (`[tool.coverage.report] fail_under`) — nowhere else.
 It rises with implementation; **raising it is part of the definition-of-done for each phase**:
 
-| Phase | Scope implemented | Gate |
-|---|---|---|
-| 0 | skeleton only (all tests skip-marked) | 0 |
-| 1 | `dq/`, `config/`, `ingest/`, `scenarios/` | 60 |
-| 2 | `transform/`, `audit/` | 80 |
-| 3 | everything (blueprint target) | 90 |
+| Phase | Scope implemented | Gate | Status |
+|---|---|---|---|
+| 0 | skeleton only (all tests skip-marked) | 0 | ✅ done |
+| 1 | `dq/`, `config/`, `ingest/`, `scenarios/` parser | 60 | ✅ done (82% actual; `scenarios/generator` moved to phase 2 with the emulator) |
+| 2 | `transform/`, `audit/`, emulator/generator | 80 | pending |
+| 3 | everything (blueprint target) | 90 | pending |
 
 A PR that implements a module without un-skipping its tests and raising the gate is
 incomplete. Never lower the gate; exceptions require an ADR.
