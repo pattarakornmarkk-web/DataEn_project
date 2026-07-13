@@ -57,8 +57,9 @@ source = ["src/retail_lakehouse"]
 # threshold; CI reads this value. Raise it in the same PR that implements each module:
 #   Phase 0 skeleton: 0 | Phase 1 dq+config+ingest: 60 | Phase 2 transform+audit: 80
 #   Phase 3 all modules implemented: 90 (final, per blueprint)
-# Currently mid-phase-1 (config + scenarios done at 61%; dq/ingest pending).
-fail_under = 55
+# Phase 1 complete (config, scenarios parser, dq, ingest — 82% actual;
+# scenarios/generator deferred to the emulator slice). Next raise: 80 with phase 2.
+fail_under = 60
 
 [tool.ruff]
 line-length = 100

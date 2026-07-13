@@ -1,14 +1,51 @@
-# DQ rule registry — consumed by the rule engine, expectation generation, AND the
-# registry meta-tests (tests/data_quality/test_registry.py enforces minimum coverage:
-# every table must have at least key-null + duplicate rules).
+# DQ rule registry — keyed by SOURCE (validation happens per source at the silver
+# boundary). Consumed by dq.rules.bind_ruleset, future SDP expectation generation,
+# AND the registry meta-tests (tests/data_quality/test_registry.py), which enforce:
+#   - every source has at least null_key + duplicate rules
+#   - every quarantine-tier fault in the scenario vocabulary maps to a rule
+#   - severity policy (no gate on customer_activity; order_events keys never observe)
 #
-# severity tiers: gate (expect_or_fail) | quarantine (split-flow) | observe (warn)
+# severity tiers: gate (expect_or_fail) | quarantine (split-flow) | observe (warn/metric)
+# try_cast rules are SYNTHESIZED from contract column types at quarantine severity;
+# a per-source {rule: try_cast, column: "*"} entry overrides that default severity.
 rules:
-  fct_order_events:
-    - {column: event_id, rule: null_key, severity: quarantine}
-    - {column: event_id, rule: duplicate, severity: quarantine}
-    - {column: event_type, rule: domain, values: [PLACED, PAID, SHIPPED, CANCELLED], severity: quarantine}
-    - {column: event_ts, rule: plausibility, max_future_skew_minutes: 5, severity: quarantine}
+  customers:
+    - {rule: null_key, column: customer_id, severity: quarantine}
+    - {rule: duplicate, severity: quarantine}
+    - {rule: domain, column: loyalty_tier, values: [BRONZE, SILVER, GOLD, PLATINUM], severity: quarantine}
+    - {rule: format, column: email, pattern: '[^@\s]+@[^@\s]+\.[^@\s]+', severity: observe}
+    - {rule: plausibility, column: birth_date, max_future_skew_minutes: 0, severity: quarantine}
+  products:
+    - {rule: null_key, column: product_id, severity: quarantine}
+    - {rule: null_key, column: sku, severity: quarantine}
+    - {rule: duplicate, severity: quarantine}
+    - {rule: range, column: unit_price, min: 0, severity: quarantine}
+    - {rule: domain, column: currency, values: [THB, USD], severity: quarantine}
+    - {rule: domain, column: category, values: [Electronics, Grocery, Apparel, Home], severity: observe}
+  stores:
+    - {rule: null_key, column: store_id, severity: quarantine}
+    - {rule: duplicate, severity: quarantine}
+    - {rule: domain, column: region, values: [NORTH, SOUTH, EAST, WEST], severity: quarantine}
+    - {rule: domain, column: store_format, values: [FLAGSHIP, STANDARD, KIOSK], severity: observe}
+    - {rule: plausibility, column: opened_date, max_future_skew_minutes: 0, severity: quarantine}
+  customer_updates:
+    - {rule: null_key, column: customer_id, severity: quarantine}
+    - {rule: null_key, column: change_ts, severity: quarantine}   # unusable for sequencing
+    - {rule: duplicate, severity: observe}   # exact re-delivery is legitimate CDC replay
+    - {rule: domain, column: op, values: [I, U, D], severity: quarantine}
+    - {rule: plausibility, column: change_ts, max_future_skew_minutes: 5, severity: quarantine}
+  order_events:
+    - {rule: null_key, column: event_id, severity: quarantine}
+    - {rule: null_key, column: customer_id, severity: quarantine}  # guest-checkout policy: quarantine
+    - {rule: duplicate, severity: quarantine}
+    - {rule: domain, column: event_type, values: [PLACED, PAID, SHIPPED, CANCELLED], severity: quarantine}
+    - {rule: domain, column: currency, values: [THB, USD], severity: quarantine}
+    - {rule: range, column: quantity, min: 1, severity: quarantine}
+    - {rule: plausibility, column: event_ts, max_future_skew_minutes: 5, severity: quarantine}
     - {rule: rescue_rate, threshold_pct: 10, severity: gate}
-  # TODO: customers, products, stores, customer_updates (op-aware), customer_activity
-  #       (observe-tier only — policy meta-test enforces no gate rules here)
+  customer_activity:   # observe-mode source: tolerate, measure, never block
+    - {rule: null_key, column: activity_id, severity: quarantine}  # row unusable without it
+    - {rule: duplicate, severity: observe}   # at-least-once delivery expected
+    - {rule: domain, column: activity_type, values: [PAGE_VIEW, SEARCH, ADD_TO_CART, REMOVE_FROM_CART, WISHLIST], severity: observe}
+    - {rule: domain, column: device, values: [IOS, ANDROID, WEB], severity: observe}
+    - {rule: try_cast, column: "*", severity: observe}   # coercion drift observed, not split

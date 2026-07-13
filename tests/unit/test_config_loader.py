@@ -48,10 +48,19 @@ class TestPackagedRegistries:
             if entity.get("scd_type") == 2:
                 assert entity.get("tiebreak"), name
 
-    def test_load_dq_rules_parses_packaged_registry(self):
+    def test_load_dq_rules_is_keyed_by_source(self):
         rules = loader.load_dq_rules()
-        assert "fct_order_events" in rules
-        assert all(r["severity"] in loader.KNOWN_SEVERITIES for r in rules["fct_order_events"])
+        assert set(rules) == ALL_SOURCES
+        assert all(
+            r["severity"] in loader.KNOWN_SEVERITIES
+            for table_rules in rules.values()
+            for r in table_rules
+        )
+
+    def test_source_contract_columns_are_complete_and_typed(self):
+        for name, spec in loader.load_contracts()["source_contracts"].items():
+            assert spec["columns"], name
+            assert all(loader.is_known_column_type(t) for t in spec["columns"].values()), name
 
 
 def _minimal_sources():
@@ -60,7 +69,12 @@ def _minimal_sources():
 
 def _minimal_contracts():
     return {
-        "source_contracts": {"customers": {"identity": ["customer_id"], "columns": {}}},
+        "source_contracts": {
+            "customers": {
+                "identity": ["customer_id"],
+                "columns": {"customer_id": "bigint", "updated_at": "timestamp"},
+            }
+        },
         "entity_contracts": {
             "dim_customer": {
                 "sources": ["customers"],
@@ -124,6 +138,48 @@ class TestValidationRejections:
     def test_unknown_severity_raises_at_load(self):
         doc = {"rules": {"t": [{"rule": "null_key", "severity": "meh"}]}}
         with pytest.raises(ConfigError, match="severity"):
+            loader.parse_dq_rules(doc)
+
+    def test_empty_columns_raises(self):
+        doc = _minimal_contracts()
+        doc["source_contracts"]["customers"]["columns"] = {}
+        with pytest.raises(ConfigError, match="columns"):
+            loader.parse_contracts(doc)
+
+    def test_unknown_column_type_raises(self):
+        doc = _minimal_contracts()
+        doc["source_contracts"]["customers"]["columns"]["customer_id"] = "uuid"
+        with pytest.raises(ConfigError, match="unknown type"):
+            loader.parse_contracts(doc)
+
+    def test_identity_column_must_exist_in_columns(self):
+        doc = _minimal_contracts()
+        doc["source_contracts"]["customers"]["identity"] = ["ghost_id"]
+        with pytest.raises(ConfigError, match="identity column"):
+            loader.parse_contracts(doc)
+
+    def test_domain_without_values_raises(self):
+        doc = {"rules": {"t": [{"rule": "domain", "column": "c", "severity": "observe"}]}}
+        with pytest.raises(ConfigError, match="requires 'values'"):
+            loader.parse_dq_rules(doc)
+
+    def test_range_without_min_or_max_raises(self):
+        doc = {"rules": {"t": [{"rule": "range", "column": "c", "severity": "observe"}]}}
+        with pytest.raises(ConfigError, match="min and/or max"):
+            loader.parse_dq_rules(doc)
+
+    def test_wildcard_column_only_valid_for_try_cast(self):
+        doc = {
+            "rules": {
+                "t": [{"rule": "domain", "column": "*", "values": ["x"], "severity": "observe"}]
+            }
+        }
+        with pytest.raises(ConfigError, match="only valid for try_cast"):
+            loader.parse_dq_rules(doc)
+
+    def test_duplicate_takes_no_column(self):
+        doc = {"rules": {"t": [{"rule": "duplicate", "column": "c", "severity": "observe"}]}}
+        with pytest.raises(ConfigError, match="takes no column"):
             loader.parse_dq_rules(doc)
 
 
