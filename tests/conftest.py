@@ -5,13 +5,26 @@ import pytest
 
 @pytest.fixture(scope="session")
 def spark():
-    """Local PySpark session — no cluster, no Databricks. Pin TZ/decimal semantics (R3)."""
+    """Local PySpark session — no cluster, no Databricks.
+
+    Timezone is pinned at EVERY layer (R3): session TZ governs SQL semantics, but
+    collect() converts timestamps via the JVM/system zone — the differential harness
+    caught a +7h Asia/Bangkok shift when only session TZ was set.
+    """
+    import os
+    import time
+
+    os.environ["TZ"] = "UTC"
+    if hasattr(time, "tzset"):
+        time.tzset()
     from pyspark.sql import SparkSession
 
     return (
         SparkSession.builder.master("local[2]")
         .appName("retail-lakehouse-tests")
         .config("spark.sql.session.timeZone", "UTC")
+        .config("spark.driver.extraJavaOptions", "-Duser.timezone=UTC")
+        .config("spark.executor.extraJavaOptions", "-Duser.timezone=UTC")
         .config("spark.sql.shuffle.partitions", "2")
         .getOrCreate()
     )
