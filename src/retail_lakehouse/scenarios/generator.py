@@ -51,7 +51,7 @@ def _file_name(source: str, clock: datetime, seq: int, extension: str) -> str:
 def _base_row(source: str, rng: random.Random, clock: datetime, i: int) -> dict:
     day = clock.strftime("%Y-%m-%d")
     if source == "customers":
-        cid = CUSTOMER_IDS[i % len(CUSTOMER_IDS)]
+        cid = i + 1  # snapshot rows are UNIQUE entities (pools are for FK references)
         return {
             "customer_id": cid,
             "first_name": f"F{cid}",
@@ -65,7 +65,7 @@ def _base_row(source: str, rng: random.Random, clock: datetime, i: int) -> dict:
             "updated_at": _iso(clock),
         }
     if source == "products":
-        pid = PRODUCT_IDS[i % len(PRODUCT_IDS)]
+        pid = i + 1
         return {
             "product_id": pid,
             "sku": f"SKU-{pid:04d}",
@@ -78,7 +78,7 @@ def _base_row(source: str, rng: random.Random, clock: datetime, i: int) -> dict:
             "effective_date": day,
         }
     if source == "stores":
-        sid = STORE_IDS[i % len(STORE_IDS)]
+        sid = i + 1
         return {
             "store_id": sid,
             "store_name": f"Store {sid}",
