@@ -63,18 +63,24 @@ def run_differential(spark, records, known_keys=frozenset(), case=""):
         ),
         (
             "held_orphans",
-            sorted(_oracle_tuple(e) for e in oracle.held_orphans),
+            sorted((_oracle_tuple(e) for e in oracle.held_orphans), key=repr),
             sorted(
-                _spark_tuple(r)
-                for r in adapter.collect_normalized(compiled.held_orphans, sort_by_row_id=False)
+                (
+                    _spark_tuple(r)
+                    for r in adapter.collect_normalized(compiled.held_orphans, sort_by_row_id=False)
+                ),
+                key=repr,  # total ordering even with None values in tuples
             ),
         ),
         (
             "conflicts",
-            sorted(_oracle_tuple(e) for e in oracle.conflicts),
+            sorted((_oracle_tuple(e) for e in oracle.conflicts), key=repr),
             sorted(
-                _spark_tuple(r)
-                for r in adapter.collect_normalized(compiled.conflicts, sort_by_row_id=False)
+                (
+                    _spark_tuple(r)
+                    for r in adapter.collect_normalized(compiled.conflicts, sort_by_row_id=False)
+                ),
+                key=repr,
             ),
         ),
     ]
