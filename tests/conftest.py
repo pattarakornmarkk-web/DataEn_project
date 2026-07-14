@@ -12,11 +12,16 @@ def spark():
     caught a +7h Asia/Bangkok shift when only session TZ was set.
     """
     import os
+    import pathlib
     import time
 
     os.environ["TZ"] = "UTC"
     if hasattr(time, "tzset"):
         time.tzset()
+    # executor Python workers need the package too (applyInPandas ships oracle code);
+    # pytest's pythonpath only patches the driver's sys.path
+    src = str(pathlib.Path(__file__).parents[1] / "src")
+    os.environ["PYTHONPATH"] = src + os.pathsep + os.environ.get("PYTHONPATH", "")
     from pyspark.sql import SparkSession
 
     return (

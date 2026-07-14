@@ -40,16 +40,14 @@ jobs:
             --var="git_sha=${{ github.sha }}" \
             --var="deployed_by=${{ github.actor }}"
 
-      # TEMPORARILY DISABLED (if: false): transforms/ and entry points are still
-      # skeleton stubs — running the orchestrator now fails by construction.
-      # Re-enable both steps when the first bronze transforms + emulator land (phase 2).
+      # Runtime validation (slice 7): emulator (day1_clean) -> pipeline -> audit -> invariants
       - name: Run orchestrator once
-        if: ${{ false }}
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: databricks bundle run orchestrator --target dev
 
+      # STILL DISABLED: integration assertions entry point is a stub (remaining gap)
       - name: Run integration scenario suite
         if: ${{ false }}
         env:

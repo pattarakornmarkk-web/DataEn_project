@@ -253,3 +253,11 @@ def load_contracts() -> dict:
 def load_dq_rules() -> dict:
     """Parse packaged conf/dq_rules.yml."""
     return parse_dq_rules(yaml.safe_load(read_data_text("conf", "dq_rules.yml")))
+
+
+def load_fx_rates() -> list[dict]:
+    """Parse packaged conf/fx_rates.yml -> rate records (validated by FxRates.from_records)."""
+    raw = _require_mapping(yaml.safe_load(read_data_text("conf", "fx_rates.yml")), "fx registry")
+    if set(raw) != {"rates"} or not isinstance(raw["rates"], list) or not raw["rates"]:
+        raise ConfigError("fx registry must have one non-empty top-level list 'rates'")
+    return raw["rates"]

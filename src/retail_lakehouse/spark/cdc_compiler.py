@@ -51,9 +51,16 @@ def _canonical(payload_cols: list[str]):
 
 
 def normalized_stream(
-    df: DataFrame, spec: CdcSpec, known_keys_df: DataFrame | None = None
+    df: DataFrame,
+    spec: CdcSpec,
+    known_keys_df: DataFrame | None = None,
+    eager_counts: bool = True,
 ) -> CompiledCdcStream:
-    """Replay-drop, conflict-resolve, orphan-hold, and order the stream."""
+    """Replay-drop, conflict-resolve, orphan-hold, and order the stream.
+
+    eager_counts=False keeps the plan fully lazy (required inside SDP MV builders,
+    where actions at graph-build time are illegal); replays_dropped is then -1.
+    """
     if ROW_ID in df.columns:
         df = df.drop(ROW_ID)  # event identity is content, not row identity
 
@@ -68,9 +75,8 @@ def normalized_stream(
     keys = list(spec.keys)
 
     # 1) exact replays collapse to one
-    input_count = df.count()
     deduped = df.dropDuplicates([*keys, OP_COL, *seq_cols, *payload_cols])
-    replays = input_count - deduped.count()
+    replays = (df.count() - deduped.count()) if eager_counts else -1
 
     # 2) ordering-tie conflicts: one winner per (key, sequence) slot
     slot_window = Window.partitionBy(*keys, *seq_cols).orderBy(

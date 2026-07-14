@@ -1,0 +1,5 @@
+# FX rate registry — LOCAL UNITS PER 1 USD, effective-dated (transform.fx semantics).
+# Ships in the wheel (ADR-0008); changes ride the same CI gate as code.
+rates:
+  - {currency: THB, effective_date: 2026-01-01, per_base: "35"}
+  - {currency: THB, effective_date: 2026-06-01, per_base: "36"}
