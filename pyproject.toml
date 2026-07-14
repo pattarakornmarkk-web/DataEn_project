@@ -42,11 +42,12 @@ packages = ["src/retail_lakehouse"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 markers = [
     "unit: fast local-Spark tests (CI)",
     "integration: deployed-pipeline scenario assertions (runs in retail_dev)",
     "dq: DQ registry meta-tests and standing invariants",
+    "spark: needs a local SparkSession (differential tier); deselect with -m 'not spark' for fast loops",
 ]
 
 [tool.coverage.run]
