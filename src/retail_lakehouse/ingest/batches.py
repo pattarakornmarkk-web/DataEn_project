@@ -63,6 +63,17 @@ def bind_cdc_spec(entity_contract: dict, source_contract: dict) -> CdcSpec:
     )
 
 
+def attach_ingestion_order(records: list[dict], batch_seq: int = 0) -> list[dict]:
+    """Attach the synthetic _ingestion_order tiebreak (ADR-0009) for sources with no
+    natural tiebreaker: (batch_seq, row position) as a monotonically increasing tuple.
+    Pure — returns new records.
+    """
+    return [
+        {**record, "_ingestion_order": (batch_seq, position)}
+        for position, record in enumerate(records)
+    ]
+
+
 def prepare_cdc_metadata(record: dict, spec: CdcSpec, default_op: str = "U") -> dict:
     """Attach normalized CDC metadata: _op and the full ordering tuple (ADR-0009).
 

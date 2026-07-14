@@ -77,6 +77,12 @@ class TestCdcPreparation:
         assert prepared["_sequence"] == ("t1", 3)  # sequence_by + tiebreak (ADR-0009)
         assert "_op" not in record  # input not mutated
 
+    def test_attach_ingestion_order_is_monotonic_and_pure(self):
+        records = [{"a": 1}, {"a": 2}]
+        ordered = batches.attach_ingestion_order(records, batch_seq=3)
+        assert [r["_ingestion_order"] for r in ordered] == [(3, 0), (3, 1)]
+        assert "_ingestion_order" not in records[0]  # input not mutated
+
     def test_snapshot_source_defaults_to_upsert(self):
         contracts = loader.load_contracts()
         spec = batches.bind_cdc_spec(
