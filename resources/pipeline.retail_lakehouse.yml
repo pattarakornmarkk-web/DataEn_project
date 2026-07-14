@@ -13,8 +13,6 @@ resources:
       libraries:
         - glob:
             include: ../transforms/**
-        - glob:
-            include: ../pipelines/**
       environment:
         dependencies:
           # Wheel consumption (critical fix): DAB uploads the built artifact and

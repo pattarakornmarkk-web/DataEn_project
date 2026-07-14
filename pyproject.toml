@@ -12,6 +12,8 @@ dependencies = [
 dev = [
     # Pin pyspark to the closest DBR-serverless-equivalent version (ADR: runtime drift, R3)
     "pyspark==4.0.0",  # TODO: confirm pin against current serverless runtime
+    "pandas>=2.0",     # applyInPandas (oracle-in-executor gold paths)
+    "pyarrow>=15.0",
     "pytest>=8.0",
     "pytest-cov>=5.0",
     "chispa>=0.10",
