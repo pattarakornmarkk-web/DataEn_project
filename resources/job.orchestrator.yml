@@ -53,6 +53,11 @@ resources:
               environment_tag: ${var.environment_tag}
               git_sha: ${var.git_sha}
               deployed_by: ${var.deployed_by}
+              lateness_window_days: ${var.lateness_window_days}
+              landing_schema: ${resources.schemas.landing.name}
+              bronze_schema: ${resources.schemas.bronze.name}
+              silver_schema: ${resources.schemas.silver.name}
+              gold_schema: ${resources.schemas.gold.name}
               ops_schema: ${resources.schemas.ops.name}
 
         - task_key: invariant_checks
@@ -65,7 +70,10 @@ resources:
             named_parameters:
               catalog: ${var.catalog}
               environment_tag: ${var.environment_tag}
-              ops_schema: ${resources.schemas.ops.name}
+              git_sha: ${var.git_sha}
+              lateness_window_days: ${var.lateness_window_days}
+              landing_schema: ${resources.schemas.landing.name}
               bronze_schema: ${resources.schemas.bronze.name}
               silver_schema: ${resources.schemas.silver.name}
               gold_schema: ${resources.schemas.gold.name}
+              ops_schema: ${resources.schemas.ops.name}

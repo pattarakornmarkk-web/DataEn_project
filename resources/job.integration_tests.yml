@@ -22,6 +22,8 @@ resources:
             named_parameters:
               catalog: ${var.catalog}
               environment_tag: ${var.environment_tag}
+              git_sha: ${var.git_sha}
+              lateness_window_days: ${var.lateness_window_days}
               landing_schema: ${resources.schemas.landing.name}
               bronze_schema: ${resources.schemas.bronze.name}
               silver_schema: ${resources.schemas.silver.name}
