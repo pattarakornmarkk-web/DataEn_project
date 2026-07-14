@@ -40,15 +40,9 @@ jobs:
             --var="git_sha=${{ github.sha }}" \
             --var="deployed_by=${{ github.actor }}"
 
-      # ONE-OFF dev reset (remove after green): re-read landing volume after the
-      # generator uniqueness fix — Auto Loader path checkpoints ignore overwrites
-      - name: Pipeline full refresh (one-off)
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-        run: databricks bundle run retail_lakehouse --target dev --full-refresh-all
-
       # Runtime validation (slice 7): emulator (day1_clean) -> pipeline -> audit -> invariants
+      # (for dev resets / scenario demos use ops-run.yml with full_refresh once it
+      #  registers on main at the first release)
       - name: Run orchestrator once
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
