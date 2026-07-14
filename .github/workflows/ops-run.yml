@@ -1,0 +1,53 @@
+# Manual ops runner: emulate a chosen scenario and run the pipeline in retail_dev.
+# full_refresh re-reads the entire landing volume (dev data reset / demo restarts).
+name: ops-run
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: Scenario to emulate (mock_data/scenarios)
+        default: day1_clean
+      full_refresh:
+        description: Full-refresh the pipeline (re-read all landing files)
+        type: boolean
+        default: false
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: databricks/setup-cli@main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install build tooling
+        run: pip install build
+
+      - name: Deploy (idempotent)
+        run: |
+          databricks bundle deploy --target dev \
+            --var="git_sha=${{ github.sha }}" --var="deployed_by=${{ github.actor }}"
+
+      - name: Emulate scenario
+        run: databricks bundle run source_emulator --target dev --params scenario=${{ inputs.scenario }}
+
+      - name: Pipeline update (full refresh optional)
+        run: |
+          if [ "${{ inputs.full_refresh }}" = "true" ]; then
+            databricks bundle run retail_lakehouse --target dev --full-refresh-all
+          else
+            databricks bundle run retail_lakehouse --target dev
+          fi
+
+      - name: Audit + invariants (via orchestrator)
+        run: databricks bundle run orchestrator --target dev
