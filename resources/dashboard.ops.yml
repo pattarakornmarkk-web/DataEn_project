@@ -1,5 +1,3 @@
-# Ops dashboard: run status timeline, rows/day per layer, quarantine rate per source,
-# DQ pass-rate trend, SCD2 churn, freshness (now - max _ingest_ts).
+# Ops dashboard — v1.1 roadmap item. Queries read ops.pipeline_runs, ops.dq_results,
+# gold.dq_reconciliation (all populated since v1.0's first run).
 resources: {}
-# TODO: dashboards resource definition (AI/BI dashboard serialized) once queries exist.
-# Queries read ops.run_audit, ops.dq_results, gold.dq_reconciliation.

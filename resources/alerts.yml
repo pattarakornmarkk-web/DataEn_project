@@ -1,8 +1,4 @@
-# SQL alerts on ops tables. Thresholds come from variables (loose in dev, tight in prod).
+# SQL alerts on ops tables — v1.1 roadmap item (see CHANGELOG / README limitations).
+# Planned: quarantine_rate_breach, expected_data_missing, run_failed,
+# freshness_sla_breach, audit_absence_canary (R4), held_orphans_present (ADR-0006).
 resources: {}
-# TODO: alert resources:
-#   quarantine_rate_breach   — quarantine pct > ${var.quarantine_alert_pct} per source/batch
-#   expected_data_missing    — zero rows ingested on an expected schedule
-#   run_failed               — ops.run_audit status != SUCCESS
-#   freshness_sla_breach     — now - max(_ingest_ts) beyond SLA
-#   audit_absence_canary     — no run_audit row for latest pipeline run (R4 canary)
