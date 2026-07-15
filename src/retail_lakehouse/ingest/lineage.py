@@ -1,7 +1,7 @@
 """Standard lineage fields for all bronze records.
 
-Pure builder here; the Spark wrapper (reading _metadata.*) lands with the transforms
-slice and must emit exactly these field names. Blueprint ref: Bronze Design §4.
+Pure builder; the Spark-side equivalent lives in spark/declarations._bronze_reader
+and must emit exactly these field names. Blueprint ref: Bronze Design §4.
 """
 
 from __future__ import annotations
@@ -37,8 +37,3 @@ def build_lineage(
         "_file_mod_ts": modified_ts,
         "_batch_date": meta.batch_ts.date() if meta.batch_ts else None,
     }
-
-
-def with_lineage_columns(df):
-    """Spark wrapper — implemented in the transforms slice; must mirror build_lineage."""
-    raise NotImplementedError

@@ -24,6 +24,8 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     environment: prod   # required-reviewer gate lives on this GitHub Environment
+    permissions:
+      contents: write   # release tagging
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,16 +49,27 @@ jobs:
             --var="git_sha=${{ inputs.ref || github.sha }}" \
             --var="deployed_by=${{ github.actor }}"
 
-      # TEMPORARILY DISABLED (if: false) — same reason as deploy-dev.yml:
-      # nothing runnable until transforms + entry points are implemented (phase 2).
+      # Smoke: one orchestrator run. In prod the emulator branch is skipped and the
+      # landing volume starts empty — an empty run exercising the full DAG + audit +
+      # invariants is exactly the "deployed AND working" proof we want.
       - name: Post-deploy smoke
-        if: ${{ false }}
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: databricks bundle run orchestrator --target prod
-        # TODO: assert run success + dq_reconciliation green + freshness updated
 
+      # Tag = the rollback anchor (runbook: redeploy a previous tag via the
+      # workflow_dispatch `ref` input above). Skipped on rollback re-deploys.
       - name: Tag release
         if: ${{ !inputs.ref }}
-        run: echo "TODO — create vYYYY.MM.DD-N tag via gh api"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          TAG="v${VERSION}"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "release $TAG already exists — redeploy of the same version, not re-tagging"
+          else
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" --title "$TAG" --generate-notes
+          fi

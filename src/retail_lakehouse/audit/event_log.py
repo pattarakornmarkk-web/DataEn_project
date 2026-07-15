@@ -1,4 +1,8 @@
-"""SDP event-log harvesting — the ONLY module allowed to know the event log schema."""
+"""SDP event-log harvesting — DEFERRED to v1.1 (risk R4 mitigation design).
+
+v1.0 audit computes directly from tables (audit/run_audit.py) — no event-log
+schema dependency on the critical path. When implemented, this stays the ONLY
+module allowed to know the event log schema."""
 
 from pyspark.sql import DataFrame
 
