@@ -4,8 +4,8 @@ logical_clock: "2026-06-11T08:00:00Z"
 description: Pipeline runs green on partial data; expected-data-missing alert must fire.
 proves: [volume_anomaly_alerting, freshness_sla]
 batches:
-  # order_events north deliberately ABSENT
-  order_events_south_only: {rows: 600, faults: []}
+  # order_events north deliberately ABSENT — only the south emitter delivers
+  order_events: {rows: 600, faults: [], emitters: [south]}
   customer_activity: {rows: 21000, faults: []}
 expected_absent:
   - order_events.north

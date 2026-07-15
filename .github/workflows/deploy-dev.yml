@@ -23,6 +23,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: databricks/setup-cli@main
 
+      # bundle deploy builds the wheel (python3 -m build) on THIS runner —
+      # the ci job's Python setup lives in a different job.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install build tooling
+        run: pip install build
+
       - name: Deploy bundle (dev)
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
@@ -32,13 +40,18 @@ jobs:
             --var="git_sha=${{ github.sha }}" \
             --var="deployed_by=${{ github.actor }}"
 
+      # Runtime validation (slice 7): emulator (day1_clean) -> pipeline -> audit -> invariants
+      # (for dev resets / scenario demos use ops-run.yml with full_refresh once it
+      #  registers on main at the first release)
       - name: Run orchestrator once
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: databricks bundle run orchestrator --target dev
 
+      # STILL DISABLED: integration assertions entry point is a stub (remaining gap)
       - name: Run integration scenario suite
+        if: ${{ false }}
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}

@@ -1,11 +1,22 @@
-"""post_run_audit job task: harvest event log -> write ops.run_audit + ops.dq_results.
+"""post-run-audit entry point: table counts -> ops.pipeline_runs + ops.dq_results."""
 
-Thin wrapper around retail_lakehouse.audit — no logic here.
-"""
+from __future__ import annotations
+
+import sys
+
+from retail_lakehouse.config import params
 
 
 def main() -> None:
-    # TODO: parse task params (catalog, git_sha, environment_tag)
-    # TODO: assert_catalog_matches_environment (R1 guard) before any write
-    # TODO: harvest event log, build audit rows, append to ops tables
-    raise NotImplementedError
+    from pyspark.sql import SparkSession
+
+    p = params.from_task_args(sys.argv[1:])  # R1 guard before any write
+    spark = SparkSession.builder.getOrCreate()
+    from retail_lakehouse.audit.run_audit import write_run_audit
+
+    counts = write_run_audit(spark, p)
+    for row in counts:
+        print(
+            f"{row['source']:20} bronze={row['bronze_rows']:>7} valid={row['valid_rows']:>7} "
+            f"quarantine={row['quarantine_rows']:>5} conserved={row['conserved']}"
+        )

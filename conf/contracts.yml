@@ -7,29 +7,88 @@
 # Conventions (loader-enforced):
 #   - sequence_by is ALWAYS a list
 #   - every scd_type: 2 entity MUST declare tiebreak (ADR-0009)
+#   - source columns: non-empty map of column -> known type
 #   - unknown fields are load-time errors, never ignored
 
 source_contracts:
   customers:
     identity: [customer_id]
-    columns: {}   # TODO: full column -> type map (see source dataset design)
+    columns:
+      customer_id: bigint
+      first_name: string
+      last_name: string
+      email: string
+      phone: string
+      birth_date: date
+      loyalty_tier: string
+      home_store_id: int
+      signup_ts: timestamp
+      updated_at: timestamp
   products:
     identity: [product_id, effective_date]
-    columns: {}   # TODO
+    columns:
+      product_id: bigint
+      sku: string
+      product_name: string
+      category: string
+      subcategory: string
+      unit_price: decimal(10,2)
+      currency: string
+      is_active: boolean
+      effective_date: date
   stores:
     identity: [store_id, update_date]
-    columns: {}   # TODO
+    columns:
+      store_id: int
+      store_name: string
+      region: string
+      store_format: string
+      manager_name: string
+      opened_date: date
+      closed_date: date
+      update_date: timestamp
   customer_updates:
     identity: [customer_id, change_ts, change_seq]   # event identity, not entity identity
     op_column: op                                    # I/U/D — op-aware DQ rules
-    delete_payload: key_only                         # op=D rows carry nulls outside keys
-    columns: {}   # TODO
+    delete_payload: key_only                         # op=D rows carry nulls outside identity
+    columns:
+      op: string
+      customer_id: bigint
+      first_name: string
+      last_name: string
+      email: string
+      phone: string
+      birth_date: date
+      loyalty_tier: string
+      home_store_id: int
+      source_system: string
+      change_ts: timestamp
+      change_seq: bigint
   order_events:
     identity: [event_id]
-    columns: {}   # TODO
+    columns:
+      event_id: string
+      order_id: bigint
+      event_type: string
+      customer_id: bigint
+      store_id: int
+      product_id: bigint
+      quantity: int
+      unit_price: decimal(10,2)
+      currency: string
+      event_ts: timestamp
+      region_source: string
   customer_activity:
     identity: [activity_id]
-    columns: {}   # TODO (customer_id nullable BY DESIGN — anonymous browsing)
+    columns:
+      activity_id: string
+      session_id: string
+      customer_id: bigint      # nullable BY DESIGN — anonymous browsing
+      activity_type: string
+      product_id: bigint
+      search_term: string
+      device: string
+      activity_ts: timestamp
 
 entity_contracts:
   dim_customer:

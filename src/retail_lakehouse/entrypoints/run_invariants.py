@@ -1,10 +1,22 @@
-"""run-invariants entry point (orchestrator invariant_checks wheel task).
+"""run-invariants entry point: standing checks; violations fail the job task."""
 
-Thin wrapper: params.from_task_args -> run audit.invariants checks against the catalog
--> write results to ops.dq_results -> exit non-zero on violations.
-Same definitions pytest runs in tests/data_quality/invariants/.
-"""
+from __future__ import annotations
+
+import sys
+
+from retail_lakehouse.config import params
 
 
 def main() -> None:
-    raise NotImplementedError
+    from pyspark.sql import SparkSession
+
+    p = params.from_task_args(sys.argv[1:])
+    spark = SparkSession.builder.getOrCreate()
+    from retail_lakehouse.audit import invariants
+
+    violations = invariants.run_all(spark, p)
+    if violations:
+        for violation in violations:
+            print(f"INVARIANT VIOLATION: {violation}")
+        sys.exit(1)
+    print("all invariants healthy")
