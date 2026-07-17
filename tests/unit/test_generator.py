@@ -33,6 +33,18 @@ class TestDeterminismAndReplay:
     def test_replay_scenario_is_byte_identical_to_target(self):
         assert _rendered("replay_day1") == _rendered("day1_clean")
 
+    def test_logical_clocks_unique_across_scenarios(self):
+        # day-1 finding: shared clocks collide file names and Auto Loader's path
+        # checkpoint silently skips them — batch scenarios must own their clock
+        clocks = {}
+        for name in parser.list_scenarios():
+            spec = parser.load_scenario(name)
+            if "replay_of" in spec:
+                continue  # replays intentionally reuse the target's files
+            clock = spec["logical_clock"]
+            assert clock not in clocks, f"{name} shares a logical_clock with {clocks[clock]}"
+            clocks[clock] = name
+
     def test_every_packaged_scenario_generates(self):
         for name in parser.list_scenarios():
             files = _files(name)
