@@ -1,6 +1,8 @@
 # Scenario: the DQ showcase — every quarantine-tier fault type in one day.
 scenario: poison_day
-logical_clock: "2026-06-09T08:00:00Z"
+# unique date — day-1 finding: a clock shared with day4 collided file names,
+# and Auto Loader's path checkpoint silently skipped the re-used paths
+logical_clock: "2026-06-12T08:00:00Z"
 description: Injected faults must land in quarantine with exact reason arrays; valid siblings flow through.
 proves: [quarantine_routing, conservation, reason_accuracy]
 batches:

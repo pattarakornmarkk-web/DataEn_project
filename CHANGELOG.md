@@ -1,5 +1,26 @@
 # Changelog
 
+## v1.0.1 — 2026-07-17
+
+Day-1 validation release: all 8 scenario days executed on retail_dev with
+evidence recorded (run ids + observed quarantine reasons in docs/testing.md).
+
+### Fixed
+- poison_day shared day4's logical clock; identical file names were silently
+  skipped by Auto Loader's path checkpoint. Clock moved to a unique date and a
+  meta-test now enforces clock uniqueness across batch scenarios.
+
+### Added
+- post-run audit prints the quarantine reason breakdown (per source.reason
+  counts) — the DQ evidence line for scenario runs.
+- Workspace-proof column completed in the testing traceability table.
+
+### Known behavior (v1.1 candidate)
+- Re-sent snapshot rows (same key, new payload) accumulate cross-batch
+  key_duplicate quarantine because silver validates the full bronze history;
+  dimensions remain correct via CDC unification. Planned refinement: scope the
+  duplicate rule per _batch_date for snapshot sources.
+
 ## v1.0.0 — 2026-07-14
 
 First production release. End-to-end verified on Databricks Free Edition
