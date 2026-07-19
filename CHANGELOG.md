@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.0.2 — 2026-07-17
+
+Documentation release.
+
+### Changed
+- README rewritten as a professional portfolio document: 18 sections, four
+  Mermaid diagrams (architecture, medallion, CI/CD, differential testing),
+  verified pipeline outputs, lessons learned from real defects, and roadmap.
+
 ## v1.0.1 — 2026-07-17
 
 Day-1 validation release: all 8 scenario days executed on retail_dev with
