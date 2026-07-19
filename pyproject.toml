@@ -1,6 +1,6 @@
 [project]
 name = "retail-lakehouse"
-version = "1.0.1"
+version = "1.0.2"
 description = "Retail Lakehouse platform library (Databricks SDP + DAB)"
 license = {file = "LICENSE"}
 requires-python = ">=3.11"
