@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.0.3 — 2026-07-17
+
+Documentation release.
+
+### Changed
+- Repository renamed `DataEn_project` -> `Retail-Lakehouse` to match the bundle,
+  package, and README naming (GitHub redirects the old URL). All badges and
+  links updated.
+
 ## v1.0.2 — 2026-07-17
 
 Documentation release.

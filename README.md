@@ -2,9 +2,9 @@
 
 **A production-grade Databricks data engineering platform** — Lakeflow Spark Declarative Pipelines, Unity Catalog, Databricks Asset Bundles, and GitHub Actions, running end-to-end on Databricks Free Edition with a fully gated release process.
 
-[![deploy-dev](https://github.com/pattarakornmarkk-web/DataEn_project/actions/workflows/deploy-dev.yml/badge.svg?branch=develop)](https://github.com/pattarakornmarkk-web/DataEn_project/actions/workflows/deploy-dev.yml)
-[![deploy-prod](https://github.com/pattarakornmarkk-web/DataEn_project/actions/workflows/deploy-prod.yml/badge.svg?branch=main)](https://github.com/pattarakornmarkk-web/DataEn_project/actions/workflows/deploy-prod.yml)
-[![release](https://img.shields.io/github/v/release/pattarakornmarkk-web/DataEn_project)](https://github.com/pattarakornmarkk-web/DataEn_project/releases)
+[![deploy-dev](https://github.com/pattarakornmarkk-web/Retail-Lakehouse/actions/workflows/deploy-dev.yml/badge.svg?branch=develop)](https://github.com/pattarakornmarkk-web/Retail-Lakehouse/actions/workflows/deploy-dev.yml)
+[![deploy-prod](https://github.com/pattarakornmarkk-web/Retail-Lakehouse/actions/workflows/deploy-prod.yml/badge.svg?branch=main)](https://github.com/pattarakornmarkk-web/Retail-Lakehouse/actions/workflows/deploy-prod.yml)
+[![release](https://img.shields.io/github/v/release/pattarakornmarkk-web/Retail-Lakehouse)](https://github.com/pattarakornmarkk-web/Retail-Lakehouse/releases)
 [![python](https://img.shields.io/badge/python-3.11-blue)](pyproject.toml)
 [![spark](https://img.shields.io/badge/Spark-4.0%20%7C%20ANSI-orange)](https://spark.apache.org)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -178,8 +178,8 @@ Two releases shipped through the full gated path:
 
 | Release | Date | Content | Evidence |
 |---|---|---|---|
-| [v1.0.0](https://github.com/pattarakornmarkk-web/DataEn_project/releases/tag/v1.0.0) | 2026-07-15 | First production release | prod smoke: orchestrator `TERMINATED SUCCESS` on `retail_prod` |
-| [v1.0.1](https://github.com/pattarakornmarkk-web/DataEn_project/releases/tag/v1.0.1) | 2026-07-17 | Day-1 validation: all 8 scenarios proven on the workspace | run ids + reasons in [docs/testing.md](docs/testing.md) |
+| [v1.0.0](https://github.com/pattarakornmarkk-web/Retail-Lakehouse/releases/tag/v1.0.0) | 2026-07-15 | First production release | prod smoke: orchestrator `TERMINATED SUCCESS` on `retail_prod` |
+| [v1.0.1](https://github.com/pattarakornmarkk-web/Retail-Lakehouse/releases/tag/v1.0.1) | 2026-07-17 | Day-1 validation: all 8 scenarios proven on the workspace | run ids + reasons in [docs/testing.md](docs/testing.md) |
 
 Deployment is exclusively via Databricks Asset Bundles — no hand-made workspace objects. Targets differ only by variables and mode ("parity by construction"); dev/prod schema names resolve through resource references so code never hardcodes a schema literal.
 
@@ -209,7 +209,7 @@ The pure packages can never import pyspark — a meta-test walks the source tree
 ## 14. Local Development Setup
 
 ```bash
-git clone https://github.com/pattarakornmarkk-web/DataEn_project && cd DataEn_project
+git clone https://github.com/pattarakornmarkk-web/Retail-Lakehouse && cd Retail-Lakehouse
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 
