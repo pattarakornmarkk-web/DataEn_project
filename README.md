@@ -24,6 +24,22 @@ What distinguishes it is *how* correctness is established:
 
 **Current state:** v1.0.4 in production (`retail_prod`), five gated releases shipped, 283 tests green, all 8 fault scenarios proven on the workspace with evidence recorded in [docs/testing.md](docs/testing.md).
 
+### How this was built
+
+I used Claude as a pair programmer throughout, and the commit history says so
+explicitly. I'd rather state that plainly than have you find it.
+
+What it means in practice: every architectural decision here is mine and I can defend
+it on a whiteboard — why silver and gold are materialized views instead of streaming
+tables, why cancellation is sticky-terminal, why the SCD2 change hash excludes
+ordering columns, why orphan deletes are held rather than dropped. Those are written
+up as [ADRs](docs/adr/README.md) because they were *decisions*, not defaults.
+
+The documented failures are the honest test of that claim: a +7-hour timezone shift
+that only differential testing could expose, 4,950 rows quarantined by my own
+framework working correctly, and a wheel that was built and wired to nothing. Finding
+and fixing those required understanding the system, not generating it.
+
 ## 2. Business Problem
 
 A retail company receives data from systems that fail in different ways:

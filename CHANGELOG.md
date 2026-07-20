@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.0.5 — 2026-07-17
+
+Documentation release.
+
+### Added
+- "How this was built" — an explicit statement of AI pair-programming, placed in the
+  executive summary so a reader meets it before the commit history. States what is
+  defensible and points at the documented failures as evidence.
+
 ## v1.0.4 — 2026-07-17
 
 Cleanup release. No new features — this removes code that was declared but never
