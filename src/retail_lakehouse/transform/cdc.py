@@ -20,7 +20,7 @@ from dataclasses import dataclass, replace
 
 from retail_lakehouse.config.contracts import ConfigError
 from retail_lakehouse.ingest.batches import CdcSpec, prepare_cdc_metadata
-from retail_lakehouse.transform.dedup import canonical_payload, sequence_sort_key
+from retail_lakehouse.transform.ordering import canonical_payload, sequence_sort_key
 
 OP_UPSERT = "U"
 OP_DELETE = "D"

@@ -17,7 +17,7 @@ Every SCD2 entity contract in `conf/contracts.yml` MUST declare a `tiebreak` col
 (e.g. `change_seq` for customer_updates). Contract loading fails if an SCD2 entity
 lacks one. Where the source has no natural tiebreaker (products), the contract
 designates ingestion order metadata (`_source_file`, then row position within file) —
-documented per entity, never implicit. `transform.dedup` and `transform.scd2` take the
+documented per entity, never implicit. `transform.ordering` and `transform.scd2` take the
 tiebreak column explicitly; ties broken descending on it (highest wins), consistently
 in both implementations and in the `sequence_by` fed to auto_cdc_flow.
 

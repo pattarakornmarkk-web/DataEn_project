@@ -39,7 +39,7 @@ incomplete. Never lower the gate; exceptions require an ADR.
 
 ## v1.0 status
 
-- 292 tests: oracle unit (~200), differential (60), registry/meta, harness.
+- 283 tests: oracle unit, differential (62), registry/meta, harness.
 - Coverage gate 80% (pyproject) — declarations/entrypoints are only executable
   in-workspace and are validated by the deployed orchestrator run instead.
 - Workspace proof completed 2026-07-17: all 8 scenarios executed on retail_dev via

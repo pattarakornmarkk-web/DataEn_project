@@ -1,8 +1,8 @@
 """SCD Type 2 — the pure ORACLE (ADR-0002; unit spec §1.4).
 
-This implementation DEFINES correct SCD2 semantics for the platform; the integration
-suite cross-checks auto_cdc_flow output against it, and the Spark compiler must
-reproduce it on the same fixtures.
+This implementation DEFINES correct SCD2 semantics for the platform; the Spark
+compiler must reproduce it on the same fixtures (differential tests). An
+auto_cdc_flow cross-check against the same canonical relation is the v1.1 path.
 
 Semantic contract:
   - effective dates come from the SEQUENCE tuple (sequence_by + tiebreak, ADR-0009) —
@@ -25,7 +25,7 @@ import hashlib
 from dataclasses import dataclass
 
 from retail_lakehouse.transform.cdc import OP_DELETE, CdcEvent
-from retail_lakehouse.transform.dedup import canonical_payload, sequence_sort_key
+from retail_lakehouse.transform.ordering import canonical_payload, sequence_sort_key
 
 
 @dataclass(frozen=True)

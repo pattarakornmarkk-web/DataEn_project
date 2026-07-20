@@ -12,7 +12,7 @@ import pytest
 from pyspark.sql import functions as F
 
 from retail_lakehouse.dq.engine import coerce_value
-from retail_lakehouse.transform.dedup import sequence_sort_key
+from retail_lakehouse.transform.ordering import sequence_sort_key
 from tests.differential import adapter, comparators
 
 pytestmark = [pytest.mark.unit, pytest.mark.spark]

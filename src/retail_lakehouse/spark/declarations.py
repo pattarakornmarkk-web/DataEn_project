@@ -17,7 +17,7 @@ files and within a file.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 
 from pyspark.sql import SparkSession
@@ -27,6 +27,7 @@ from pyspark.sql import types as T
 from retail_lakehouse.config import loader
 from retail_lakehouse.config import params as params_mod
 from retail_lakehouse.dq.rules import bind_ruleset
+from retail_lakehouse.ingest import batches
 from retail_lakehouse.ingest.batches import CdcSpec, bind_cdc_spec
 from retail_lakehouse.spark import cdc_compiler, dq_compiler, gold_compiler, scd2_compiler
 from retail_lakehouse.transform.fx import FxRates
@@ -121,6 +122,27 @@ def register_bronze(dp) -> None:
 
 
 # ------------------------------------------------------------------- SILVER
+def lateness_column(event_time_col: str, as_of: datetime, window_days: int):
+    """Spark counterpart of ingest.batches.classify_lateness — FLAG, never drop.
+
+    Boundary is inclusive: an event exactly window_days old is still in_window.
+    Held verdict-equal to the oracle by tests/differential/test_lateness_differential.py.
+    """
+    cutoff = as_of - timedelta(days=window_days)
+    return F.when(F.col(event_time_col) < F.lit(cutoff), batches.BEYOND_WINDOW).otherwise(
+        batches.IN_WINDOW
+    )
+
+
+def _event_time_column(source: str) -> str | None:
+    """Event-time column for FACT sources, derived from the entity contract.
+    Dimensions (scd_type present) are excluded — lateness is a fact-grain concern."""
+    for entity in _ctx()["contracts"]["entity_contracts"].values():
+        if source in entity["sources"] and "scd_type" not in entity:
+            return entity["sequence_by"][0]
+    return None
+
+
 _LINEAGE_KEEP = ["_source_file", "_ingestion_order", "_batch_date"]
 
 
@@ -152,7 +174,16 @@ def register_silver(dp) -> None:
         def make_valid(src=source):
             def valid():
                 validated, ruleset = _validated(src)
-                return dq_compiler.split(validated, ruleset, passthrough=_LINEAGE_KEEP)[0]
+                df = dq_compiler.split(validated, ruleset, passthrough=_LINEAGE_KEEP)[0]
+                event_time = _event_time_column(src)
+                if event_time:  # facts carry a lateness flag; dimensions do not
+                    df = df.withColumn(
+                        "_lateness",
+                        lateness_column(
+                            event_time, _ctx()["as_of"], _ctx()["params"].lateness_window_days
+                        ),
+                    )
+                return df
 
             return valid
 

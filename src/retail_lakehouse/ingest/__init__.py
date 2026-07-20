@@ -1,1 +1,1 @@
-"""Ingestion helpers: lineage columns and filename metadata parsing."""
+"""Ingestion helpers: filename metadata parsing and batch-level semantics."""
