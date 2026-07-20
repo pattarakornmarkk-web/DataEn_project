@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from retail_lakehouse.transform.dedup import sequence_sort_key
+from retail_lakehouse.transform.ordering import sequence_sort_key
 
 BROWSE_EVENTS = frozenset({"PAGE_VIEW", "SEARCH", "WISHLIST"})
 CART_ADD = "ADD_TO_CART"
