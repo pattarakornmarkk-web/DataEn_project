@@ -1,6 +1,6 @@
 [project]
 name = "retail-lakehouse"
-version = "1.0.3"
+version = "1.0.4"
 description = "Retail Lakehouse platform library (Databricks SDP + DAB)"
 license = {file = "LICENSE"}
 requires-python = ">=3.11"
@@ -24,7 +24,6 @@ dev = [
 # Console scripts = python_wheel_task entry points (resources/job.*.yml reference these names).
 post-run-audit = "retail_lakehouse.entrypoints.post_run_audit:main"
 source-emulator = "retail_lakehouse.entrypoints.source_emulator:main"
-integration-assertions = "retail_lakehouse.entrypoints.run_integration_assertions:main"
 run-invariants = "retail_lakehouse.entrypoints.run_invariants:main"
 
 [build-system]

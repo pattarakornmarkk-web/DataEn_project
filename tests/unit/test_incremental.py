@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from retail_lakehouse.config import loader
-from retail_lakehouse.ingest import batches, filenames, lineage
+from retail_lakehouse.ingest import batches, filenames
 
 pytestmark = pytest.mark.unit
 
@@ -130,20 +130,3 @@ class TestFileHooks:
             for i in batches.validate_file("order_events", cfg, name, emitter="west")
         )
         assert batches.validate_file("order_events", cfg, name, emitter="south") == []
-
-
-class TestLineage:
-    def test_build_lineage_emits_standard_fields(self):
-        fields = lineage.build_lineage(
-            file_name="customers_20260706_081500_001.csv",
-            file_path="/Volumes/c/landing/files/customers/customers_20260706_081500_001.csv",
-            file_size=1024,
-            modified_ts=AS_OF,
-            ingest_ts=AS_OF,
-        )
-        assert tuple(fields) == lineage.LINEAGE_FIELDS
-        assert fields["_batch_date"].isoformat() == "2026-07-06"
-
-    def test_malformed_filename_gives_null_batch_date_not_error(self):
-        fields = lineage.build_lineage("junk.csv", "/x/junk.csv", 1, AS_OF, AS_OF)
-        assert fields["_batch_date"] is None

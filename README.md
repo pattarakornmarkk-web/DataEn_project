@@ -22,7 +22,7 @@ What distinguishes it is *how* correctness is established:
 - **Conservation by construction** — `bronze == valid + quarantine` is enforced by three independent mechanisms that must agree.
 - **A deterministic fault-injection emulator** — every failure mode a real pipeline faces (late data, replays, deletes, schema drift, poison records) is a named, reproducible scenario with three tiers of proof: unit test → differential test → recorded production-like run.
 
-**Current state:** v1.0.1 in production (`retail_prod`), two gated releases shipped, ~293 tests green, all 8 fault scenarios proven on the workspace with evidence recorded in [docs/testing.md](docs/testing.md).
+**Current state:** v1.0.4 in production (`retail_prod`), five gated releases shipped, 283 tests green, all 8 fault scenarios proven on the workspace with evidence recorded in [docs/testing.md](docs/testing.md).
 
 ## 2. Business Problem
 
@@ -144,7 +144,7 @@ Semantics worth noting: blank strings are null everywhere; coercion failure flag
 
 ```mermaid
 flowchart LR
-    PR["PR / feature push"] --> CI["ci.yml<br/>ruff · pytest ~293 · wheel build<br/>bundle validate (dev AND prod)"]
+    PR["PR / feature push"] --> CI["ci.yml<br/>ruff · pytest 283 · wheel build<br/>bundle validate (dev AND prod)"]
     CI --> MD["merge → develop"]
     MD --> DD["deploy-dev.yml<br/>deploy retail_dev +<br/>full orchestrator run"]
     DD --> RP["release PR → main"]
@@ -273,10 +273,10 @@ Full scenario matrix (late CDC, out-of-order, deletes/orphans, schema drift, sou
 | Priority | Item | Notes |
 |---|---|---|
 | v1.1 | Scope duplicate rule per `_batch_date` for snapshot sources | Day-1 finding: re-sent snapshots accumulate cross-batch `key_duplicate` |
-| v1.1 | In-workspace integration assertion suite | Entry point stubbed; enables the final disabled deploy-dev step |
+| v1.1 | Assert scenario outcomes automatically, not by reading run output | Today the dev orchestrator run + invariants task are the gate; scenario expectations live in docs, not code |
 | v1.1 | Ops dashboard + SQL alerts | `ops.pipeline_runs` / `dq_results` already carry the data |
 | v1.2 | `auto_cdc_flow` cross-check | Compare managed SCD2 against the compiler's canonical relation (ADR-0002/0010) |
-| v1.2 | Event-log-based audit enrichment | Isolated in `audit/event_log.py` by design |
+| v1.2 | Event-log-based audit enrichment | Would land as one isolated module; kept off the critical path so a platform change can't break auditing |
 | v2 | PII tagging & masking, per-env service principals, streaming silver at scale | Paid-tier path |
 
 ---

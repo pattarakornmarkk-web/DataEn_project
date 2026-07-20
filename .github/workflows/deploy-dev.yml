@@ -49,11 +49,3 @@ jobs:
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: databricks bundle run orchestrator --target dev
 
-      # STILL DISABLED: integration assertions entry point is a stub (remaining gap)
-      - name: Run integration scenario suite
-        if: ${{ false }}
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-        run: databricks bundle run integration_tests --target dev
-        # TODO: publish scenario results to $GITHUB_STEP_SUMMARY

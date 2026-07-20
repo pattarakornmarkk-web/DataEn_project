@@ -1,5 +1,31 @@
 # Changelog
 
+## v1.0.4 — 2026-07-17
+
+Cleanup release. No new features — this removes code that was declared but never
+wired, and completes one feature that was plumbed but never connected.
+
+### Removed
+- Integration assertion scaffolding (`integration/` package, its entry point, the
+  `job.integration_tests` resource, and the disabled deploy-dev step). It never had
+  an implementation; the real promotion gate is CI + a full dev orchestrator run +
+  the post-run invariants task, and scenario evidence is recorded in docs/testing.md.
+- `audit/event_log.py` — a stub; audit is computed directly from tables.
+- `ingest/lineage.py` — the Spark bronze reader owns the lineage column contract;
+  a second unenforced copy was dead weight.
+- `transform.dedup.dedup_by_key` / `DedupResult` — orphaned oracle with no runtime
+  caller (CDC normalization does its own dedup). The module kept only its live
+  primitives and is now honestly named `transform/ordering.py`.
+
+### Fixed
+- `lateness_window_days` was a required pipeline parameter passed to every job task
+  and consumed nowhere. Silver fact tables now carry a `_lateness` flag derived from
+  it (`in_window` / `beyond_window`, boundary inclusive, flagged never dropped),
+  held verdict-equal to `ingest.batches.classify_lateness` by a new differential test.
+
+### Changed
+- Docs now state the real promotion gate instead of a planned one.
+
 ## v1.0.3 — 2026-07-17
 
 Documentation release.

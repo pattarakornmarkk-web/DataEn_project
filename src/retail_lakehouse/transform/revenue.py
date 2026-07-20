@@ -22,8 +22,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 
-from retail_lakehouse.transform.dedup import sequence_sort_key
 from retail_lakehouse.transform.fx import BASE_CURRENCY, FxRates, MissingRateError
+from retail_lakehouse.transform.ordering import sequence_sort_key
 
 CANCELLED, PAID = "CANCELLED", "PAID"
 

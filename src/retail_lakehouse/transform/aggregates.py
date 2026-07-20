@@ -15,7 +15,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import Decimal
 
-from retail_lakehouse.transform.dedup import sequence_sort_key
+from retail_lakehouse.transform.ordering import sequence_sort_key
 
 UNKNOWN = "UNKNOWN"
 
